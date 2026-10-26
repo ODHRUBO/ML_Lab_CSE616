@@ -1,0 +1,22 @@
+Diabetes data: 442 patients, 10 raw inputs -> 64 polynomial features
+Train/test split: 310 / 132
+
+Lambda chosen by 5-fold CV: 7.20
+Noise variance estimate sigma^2: MLE 2023.4, MAP 2396.3
+Implied prior variance tau^2 = sigma^2 / lambda = 332.96 (tau = 18.25)
+
+Estimator split      MAE    RMSE      R2     NLL    ||w||
+MLE      train    34.99   44.98  0.6606   5.225   3209.7
+MLE      test     51.38   63.25  0.3078   5.714   3209.7
+MAP      train    38.97   48.95  0.5980   5.310     64.3
+MAP      test     49.36   59.61  0.3853   5.551     64.3
+
+Baseline (10 raw inputs, MLE) test: MAE=48.93 RMSE=58.66 R2=0.4046
+
+Learning curve (median test RMSE over 20 random training subsets):
+   n =  60: MLE   543.46   MAP  59.77
+   n =  80: MLE   190.66   MAP  59.96
+   n = 100: MLE   118.27   MAP  59.13
+   n = 150: MLE    77.34   MAP  59.59
+   n = 200: MLE    67.08   MAP  59.35
+   n = 310: MLE    63.25   MAP  59.61

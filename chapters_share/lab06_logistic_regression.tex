@@ -1,0 +1,87 @@
+% =====================================================================
+\chapter{Logistic Regression}
+% =====================================================================
+
+\labinfo{06\_Logistic\_Regression}{logistic\_regression.py}{Breast Cancer Wisconsin (Diagnostic): 569
+tumours, 30 features}{Binary classification (malignant or benign)}{Test accuracy 97.3\%, recall 97.6\%,
+ROC AUC 0.997}
+
+\section{Dataset}
+The \textbf{Breast Cancer Wisconsin (Diagnostic)} dataset (UCI) describes 569 breast tumours, 212
+malignant (37.3\%) and 357 benign. The features come from a digitised microscope image of cells taken by
+fine-needle aspiration. Ten properties of the cell nuclei are measured (radius, texture, perimeter, area,
+smoothness, compactness, concavity, concave points, symmetry and fractal dimension), and for each one the
+dataset gives the mean, the standard error and the ``worst'' value (mean of the three largest), so 30
+features in total. They are on very different scales (area is in the hundreds, smoothness around
+0.1), so I standardised them. I used a stratified 80/20 split: 456 training and 113 test tumours.
+Malignant is the positive class.
+
+\section{Code and experiments}
+\begin{itemize}
+\item \code{sigmoid} clips its input to $[-500,500]$ so \code{np.exp} never overflows, and
+      \code{cross\_entropy} clips probabilities away from 0 and 1 before taking logs.
+\item \code{LogisticRegression.fit} runs batch gradient descent (learning rate 0.1, 2,000 iterations)
+      and stores the loss after each iteration; \code{predict\_proba} and \code{predict} use the
+      learned weights.
+\item \code{binary\_metrics} and \code{roc\_auc} compute the metrics from scratch.
+\end{itemize}
+\noindent Experiments: (1)~5-fold cross-validation for four L2 strengths; (2)~the chosen model on the
+test set at thresholds 0.5 and 0.3; (3)~a two-feature version of the model, only to draw the probability
+surface.
+
+\section{Results}
+
+\begin{table}[H]
+\centering\small
+\caption{5-fold cross-validation on the training set.}
+\label{tab:logreg-cv}
+\begin{tabular}{@{}l c c c c@{}}
+\toprule
+L2 strength $\lambda$ & 0 & 0.001 & 0.01 & 0.1\\
+\midrule
+CV accuracy & $0.987\pm0.011$ & $0.987\pm0.011$ & $0.985\pm0.009$ & $0.969\pm0.008$\\
+CV ROC AUC & 0.9929 & 0.9930 & 0.9928 & 0.9921\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Regularisation did not help: with 456 examples for 31 weights and early stopping after 2,000 steps,
+the plain maximum-likelihood model was already as good as the regularised ones. I kept $\lambda=0$.
+
+\begin{table}[H]
+\centering\small
+\caption{Test-set results (113 tumours, 42 malignant).}
+\label{tab:logreg-test}
+\begin{tabular}{@{}l S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] l@{}}
+\toprule
+\textbf{Threshold} & {\textbf{Accuracy}} & {\textbf{Precision}} & {\textbf{Recall}} & {\textbf{Specificity}} & {\textbf{F1}} & \textbf{[[TN FP] [FN TP]]}\\
+\midrule
+0.5 & 0.9735 & 0.9535 & 0.9762 & 0.9718 & 0.9647 & [[69 2] [1 41]]\\
+0.3 & 0.9558 & 0.9111 & 0.9762 & 0.9437 & 0.9425 & [[67 4] [1 41]]\\
+\midrule
+\multicolumn{7}{@{}l}{ROC AUC = 0.9973 \qquad test log-loss (cross-entropy) = 0.0752}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The model gets 110 of 113 tumours right and ranks almost every malignant tumour above every benign one
+(AUC 0.997). Lowering the threshold to 0.3 did \emph{not} help on this test set: the one missed malignant
+tumour received a probability of only 0.06, so it stays missed, and the lower threshold just adds two more
+false alarms. To catch it, the threshold would have to go below 0.06, which would flag many healthy
+patients.
+
+The largest weights (on standardised features) belong to worst texture ($+1.17$), standard error of the
+radius ($+1.17$), worst smoothness ($+1.03$), worst radius ($+0.99$) and mean concave points ($+0.98$).
+All are positive: large, irregular nuclei push the prediction towards malignant, which agrees with
+what is known about cancer cells.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\linewidth]{\figpath{06\_Logistic\_Regression}{loss_and_roc.pdf}}\hfill
+\includegraphics[width=0.48\linewidth]{\figpath{06\_Logistic\_Regression}{threshold_effect.pdf}}
+\caption{Training loss, ROC curve and threshold trade-off.}
+\end{figure}
+
+\section{Source code}
+\lstinputlisting[caption={\texttt{06\_Logistic\_Regression/logistic\_regression.py}}]{06_Logistic_Regression/logistic_regression.py}
+\clearpage

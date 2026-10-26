@@ -1,0 +1,87 @@
+Mushroom data: 8124 records, 22 categorical attributes
+Class counts: {'edible': 4208, 'poisonous': 3916}
+Train/test split: 5687 / 2437
+
+Entropy of the training set H(S) = 0.9991 bits
+Information gain of each attribute at the root:
+   odor      0.9122
+   spore_print_color 0.4901
+   gill_color 0.4206
+   ring_type 0.3241
+   stalk_surface_above_ring 0.2923
+   stalk_surface_below_ring 0.2883
+   stalk_color_above_ring 0.2611
+   stalk_color_below_ring 0.2484
+   gill_size 0.2260
+   population 0.2016
+   bruises   0.1997
+   habitat   0.1635
+   stalk_root 0.1367
+   gill_spacing 0.1006
+   cap_shape 0.0509
+   ring_number 0.0406
+   cap_color 0.0338
+   cap_surface 0.0265
+   veil_color 0.0229
+   gill_attachment 0.0133
+   stalk_shape 0.0084
+   veil_type 0.0000
+
+Full tree: 5 decision nodes, 33 leaves, depth 4
+Top of the tree (two levels):
+   odor = a
+       -> edible  (276 records)
+   odor = c
+       -> poisonous  (131 records)
+   odor = f
+       -> poisonous  (1512 records)
+   odor = l
+       -> edible  (287 records)
+   odor = m
+       -> poisonous  (27 records)
+   odor = n
+       spore_print_color = b
+           -> edible  (26 records)
+       spore_print_color = h
+           -> edible  (32 records)
+       spore_print_color = k
+           -> edible  (905 records)
+       spore_print_color = n
+           -> edible  (957 records)
+       spore_print_color = o
+           -> edible  (36 records)
+       spore_print_color = r
+           -> poisonous  (43 records)
+       spore_print_color = u
+           -> edible  (0 records)
+       spore_print_color = w
+           -> ... subtree on habitat (428 records)
+       spore_print_color = y
+           -> edible  (33 records)
+   odor = p
+       -> poisonous  (173 records)
+   odor = s
+       -> poisonous  (409 records)
+   odor = y
+       -> poisonous  (412 records)
+
+Training accuracy: 1.0000
+Test-set results (full tree)
+  Accuracy        : 1.0000
+  Macro precision : 1.0000
+  Macro recall    : 1.0000
+  Macro F1        : 1.0000
+  Weighted F1     : 1.0000
+  edible   : precision=1.000 recall=1.000 f1=1.000 (support 1262)
+  poisonous: precision=1.000 recall=1.000 f1=1.000 (support 1175)
+  Confusion matrix (rows actual, cols predicted, order ['edible', 'poisonous']):
+[[1262    0]
+ [   0 1175]]
+
+Depth limit study:
+   max depth 1:   9 leaves, train acc 0.9865, test acc 0.9824
+   max depth 2:  17 leaves, train acc 0.9940, test acc 0.9943
+   max depth 3:  23 leaves, train acc 0.9967, test acc 0.9979
+   max depth 4:  33 leaves, train acc 1.0000, test acc 1.0000
+   max depth 5:  33 leaves, train acc 1.0000, test acc 1.0000
+   max depth 6:  33 leaves, train acc 1.0000, test acc 1.0000

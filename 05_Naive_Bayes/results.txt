@@ -1,0 +1,27 @@
+SMS data: 5572 messages, spam = 747 (13.4%), average length = 16.2 words
+Train/test split: 4458 / 1114
+
+5-fold CV F1 (spam) for different smoothing values:
+   alpha = 0.0   -> F1 = 0.8087
+   alpha = 0.01  -> F1 = 0.9510
+   alpha = 0.05  -> F1 = 0.9519
+   alpha = 0.1   -> F1 = 0.9528
+   alpha = 0.25  -> F1 = 0.9547
+   alpha = 0.5   -> F1 = 0.9492
+   alpha = 1.0   -> F1 = 0.9445
+   alpha = 2.0   -> F1 = 0.9344
+   alpha = 5.0   -> F1 = 0.8719
+Best alpha from CV: 0.25
+
+Model                      Acc    Prec  Recall      F1    Spec     AUC
+No smoothing (a=0)      0.9506  0.9352  0.6779  0.7860  0.9927  0.9684
+Laplace (a=1)           0.9892  0.9858  0.9329  0.9586  0.9979  0.9882
+CV best (a=0.25)        0.9901  0.9662  0.9597  0.9630  0.9948  0.9913
+
+Without smoothing, 1027 of 1114 test messages get probability 0 for at least one class
+
+Confusion matrix for CV best (a=0.25) (rows actual ham/spam, cols predicted ham/spam):
+[[960   5]
+ [  6 143]]
+Vocabulary size: 7821 words
+Top spam words (log-ratio): claim (7.21), prize (6.98), 150p (6.59), tone (6.54), guaranteed (6.34), cs (6.29), 18 (6.24), £1 (6.09), £1000 (6.03), 150ppm (6.03), ringtone (5.96), awarded (5.96), 000 (5.85), tones (5.81), valid (5.77)

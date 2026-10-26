@@ -1,0 +1,20 @@
+Iris data: 100 flowers, 4 features, versicolor = 50 (50.0%)
+Train/test split: 80 / 20
+
+Training: 1 epochs, errors in first epochs [0], minimum 0 errors (epoch 1)
+Converged (zero training errors)? yes
+Final weights W = [0.772, -1.254, 1.379, 1.429], bias b = 0.0
+
+Training accuracy: 1.0000
+Test-set results
+  acc         : 1.0000
+  precision   : 1.0000
+  recall      : 1.0000
+  specificity : 1.0000
+  f1          : 1.0000
+  confusion matrix [[TN FP] [FN TP]] = [[10, 0], [0, 10]]
+
+5-fold CV accuracy: 1.0000 +/- 0.0000  (folds: [1.0, 1.0, 1.0, 1.0, 1.0])
+
+XOR check: after 100 epochs the perceptron still makes 2 errors (best ever: 1)
+Two-feature perceptron (sepal length, sepal width): training errors per epoch [0]...

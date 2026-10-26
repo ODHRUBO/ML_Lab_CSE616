@@ -1,0 +1,71 @@
+% =====================================================================
+\chapter{Perceptron}
+% =====================================================================
+
+\labinfo{07\_Perceptron}{perceptron.py}{UCI Iris: 100 flowers from two linearly separable species, 4
+measurements}{Binary classification (setosa or versicolor)}{Test accuracy 100\%, F1 1.000; 5-fold CV accuracy 100\%}
+
+\section{Dataset}
+The binary Iris subset contains 50 setosa and 50 versicolor flowers described by sepal length, sepal
+width, petal length and petal width. These two species are linearly separable in this feature space, so
+the dataset gives the single-neuron perceptron a clean convergence example. I standardised the features
+and made a stratified 80/20 split (80 training, 20 test flowers).
+
+\section{Code and experiments}
+\begin{itemize}
+\item \code{hardlim} is the transfer function.
+\item \code{Perceptron.fit} is a direct translation of the learning rule: shuffle, then for each example
+      compute $a$ and $e$ and update $W$ and $b$. After each epoch it records the number of training
+      errors and keeps the best weights (the pocket). It can also save snapshots of the weights so the
+      moving boundary can be drawn.
+\item \code{binary\_metrics} computes accuracy, precision, recall, specificity, F1 and the confusion matrix.
+\end{itemize}
+\noindent Experiments: (1)~training on all four features for up to 100 epochs and testing;
+(2)~5-fold cross-validation on the whole dataset; (3)~the XOR problem, as a check that the
+implementation shows the known limitation; (4)~a two-feature perceptron (variance and skewness) to draw
+how the boundary moves during training.
+
+\section{Results}
+
+\begin{table}[H]
+\centering\small
+\caption{Perceptron results on the binary Iris data.}
+\label{tab:perc}
+\begin{tabular}{@{}l l@{}}
+\toprule
+Epochs run & 1 (zero errors reached)\\
+Fewest training errors & 0 of 80, at epoch 1\\
+Final weights & $W=[0.772,\;-1.254,\;1.379,\;1.429]$, \ $b=0$\\
+Training accuracy & 100\%\\
+\midrule
+Test accuracy & \textbf{100\%}\\
+Test precision / recall (versicolor) & 1.0000 / 1.0000\\
+Test specificity / F1 & 1.0000 / 1.0000\\
+Test confusion matrix & [[TN 10, FP 0], [FN 0, TP 10]]\\
+\midrule
+5-fold CV accuracy & $100\% \pm 0\%$ (all folds 100\%)\\
+XOR after 100 epochs & still 2 of 4 wrong (never 0)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A single neuron with four weights and a bias classifies 98.5\% of unseen notes correctly, and the
+cross-validation folds all lie between 98.2\% and 99.3\%, so the result is stable. The error curve shows
+the non-separable behaviour that the theory predicts: the rule never stops changing the weights. The
+pocket helped a little here. The weights after the very last epoch made 10 training errors (and scored
+98.2\% on the test set), while the best set, from epoch 39, made only 7.
+
+All important weights are negative and of similar size for variance, skewness and curtosis, while
+entropy has almost no weight. So forged notes are mainly the ones with low wavelet variance, skewness and
+curtosis.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\linewidth]{\figpath{07\_Perceptron}{errors_per_epoch.pdf}}\hfill
+\includegraphics[width=0.48\linewidth]{\figpath{07\_Perceptron}{boundary_two_features.pdf}}
+\caption{Perceptron convergence and the moving two-feature boundary.}
+\end{figure}
+
+\section{Source code}
+\lstinputlisting[caption={\texttt{07\_Perceptron/perceptron.py}}]{07_Perceptron/perceptron.py}
+\clearpage

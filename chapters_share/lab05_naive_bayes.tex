@@ -1,0 +1,87 @@
+% =====================================================================
+\chapter{Naive Bayes Classifier}
+% =====================================================================
+
+\labinfo{05\_Naive\_Bayes}{naive\_bayes.py}{UCI SMS Spam Collection: 5,572 text messages (747 spam)}
+{Binary text classification (spam or ham)}{Test accuracy 99.0\%, spam F1 0.963, ROC AUC 0.991 ($\alpha=0.25$)}
+
+\section{Dataset}
+The \textbf{SMS Spam Collection} (Almeida and Gómez Hidalgo, 2011; UCI) contains 5,572 real English text
+messages labelled \emph{ham} (normal, 4,827) or \emph{spam} (747, i.e.\ 13.4\%). A typical spam message
+looks like ``WINNER!! As a valued network customer you have been selected to receive a £900 prize
+reward! To claim call 0906\dots''. Spam messages are longer on average (about 24 words against 14).
+
+Preparation was deliberately simple: lower-case everything and keep runs of letters, digits and the
+\pounds{} and \$ signs as words. No stemming and no stop-word removal. I used a stratified 80/20 split
+(4,460 training and 1,114 test messages). The training messages contain 7,735 different words.
+
+Because the classes are unbalanced, accuracy alone would be misleading (always answering ``ham'' already
+scores 86.6\%), so I focus on precision, recall and F1 for the spam class.
+
+\section{Code and experiments}
+\begin{itemize}
+\item \code{tokenize} is a one-line regular expression.
+\item \code{MultinomialNaiveBayes.fit} builds the vocabulary, counts words per class and stores
+      $\log P(c)$ and the smoothed $\log P(w\mid c)$ for every word. With $\alpha=0$, unseen words get
+      $\log 0=-\infty$ on purpose, to show the zero-frequency problem.
+\item \code{log\_scores} adds up the log-probabilities of the known words; \code{predict} takes the
+      larger score; \code{spam\_score} returns the score difference for the ROC curve.
+\item \code{binary\_metrics}, \code{roc\_curve} and \code{auc} compute the evaluation numbers.
+\end{itemize}
+\noindent Experiments: (1)~5-fold cross-validation over nine values of $\alpha$ from 0 to 5; (2)~test-set
+comparison of no smoothing, Laplace ($\alpha=1$) and the CV choice; (3)~the most ``spammy'' words, i.e.\
+the largest $\log P(w\mid\text{spam})-\log P(w\mid\text{ham})$.
+
+\section{Results}
+
+\begin{table}[H]
+\centering\small
+\caption{5-fold cross-validation F1 score (spam class) for different smoothing values.}
+\label{tab:nb-alpha}
+\begin{tabular}{@{}l c c c c c c c c c@{}}
+\toprule
+$\alpha$ & 0 & 0.01 & 0.05 & 0.1 & 0.25 & 0.5 & 1 & 2 & 5\\
+\midrule
+CV F1 & 0.784 & 0.940 & 0.945 & 0.946 & \textbf{0.949} & 0.943 & 0.943 & 0.928 & 0.867\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering\small
+\caption{Test-set results (1,114 messages, spam is the positive class).}
+\label{tab:nb-test}
+\begin{tabular}{@{}l S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] S[table-format=1.4]@{}}
+\toprule
+\textbf{Model} & {\textbf{Accuracy}} & {\textbf{Precision}} & {\textbf{Recall}} & {\textbf{F1}} & {\textbf{Specificity}} & {\textbf{AUC}}\\
+\midrule
+No smoothing ($\alpha=0$)  & 0.9551 & 0.9714 & 0.6846 & 0.8031 & 0.9969 & 0.9730\\
+Laplace ($\alpha=1$)       & 0.9910 & 0.9860 & 0.9463 & 0.9658 & 0.9979 & 0.9875\\
+CV choice ($\alpha=0.25$)  & 0.9901 & 0.9662 & 0.9597 & 0.9630 & 0.9948 & 0.9913\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Smoothing is essential.} Without it, 1,027 of the 1,114 test messages contain at least one word
+that has zero probability in one of the classes. Those messages are decided by which class happened to
+see the rarest word rather than by their content, and recall falls to 68\%: a third of the spam gets
+through. Any $\alpha$ between 0.01 and 1 fixes this.
+
+The CV choice $\alpha=0.25$ and Laplace smoothing are practically tied on the test set; the difference
+is two or three messages. $\alpha=0.25$ catches two more spam messages at the cost of three more false
+alarms. Both reach about 99\% accuracy, which is far above the 86.6\% of the always-ham baseline.
+
+The learned word statistics are easy to interpret: \emph{claim}, \emph{prize}, \emph{guaranteed},
+\emph{awarded}, prices such as \emph{150p} and \emph{\pounds1000}, and \emph{ringtone}/\emph{tones}
+are typical of SMS spam. Such an easy explanation is one of the nice things about Naive Bayes.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\linewidth]{\figpath{05\_Naive\_Bayes}{roc_and_alpha.pdf}}\hfill
+\includegraphics[width=0.48\linewidth]{\figpath{05\_Naive\_Bayes}{top_spam_words.pdf}}
+\caption{ROC and smoothing comparison, with the most spam-indicative words.}
+\end{figure}
+
+\section{Source code}
+\lstinputlisting[caption={\texttt{05\_Naive\_Bayes/naive\_bayes.py}}]{05_Naive_Bayes/naive_bayes.py}
+\clearpage

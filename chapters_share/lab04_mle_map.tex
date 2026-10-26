@@ -1,0 +1,101 @@
+% =====================================================================
+\chapter[Maximum Likelihood and Maximum A Posteriori Estimation]{Maximum Likelihood and\\Maximum A Posteriori Estimation}
+\markboth{Lab~\thechapter: MLE and MAP Estimation}{}
+% =====================================================================
+
+\labinfo{04\_MLE\_MAP}{mle\_map.py}{Diabetes progression (Efron et al., 2004): 442 patients, 10 baseline
+measurements}{Regression with 64 polynomial features}{MAP: test RMSE 59.6, $R^2=0.385$; MLE: test RMSE
+63.3, $R^2=0.308$}
+
+\section{Dataset}
+The \textbf{Diabetes} dataset (Efron, Hastie, Johnstone and Tibshirani, 2004) has 442 diabetes patients.
+For each patient there are ten baseline measurements: age, sex, body mass index, average blood pressure
+and six blood serum measurements (s1--s6). The target is a number (25--346) that measures how much the
+disease progressed one year later.
+
+To create a setting where MLE and MAP actually differ, I gave the model a lot of freedom: all ten
+inputs, their squares (except for sex, which only has two values) and all 45 pairwise products, so
+64 features in total. With only 310 training patients (70/30 split, 132 for testing), that is a lot of
+weights to estimate from little data, which is exactly the situation where a prior should help.
+
+\section{Code and experiments}
+\begin{itemize}
+\item \code{poly2} builds the 64 polynomial features, and \code{Prep} standardises them and centres $y$
+      using training statistics only.
+\item \code{fit\_mle} solves least squares (with \code{np.linalg.lstsq}, which also copes with the case
+      of more weights than examples) and returns $\hat\sigma^2$.
+\item \code{fit\_map} solves $(\Phi^\top\Phi+\lambda I)\vect w=\Phi^\top\vect y$.
+\item \code{gaussian\_nll} measures how probable the test targets are under each fitted model.
+\item \code{choose\_lambda} tries 50 values of $\lambda$ between $10^{-3}$ and $10^{4}$ with 5-fold
+      cross-validation.
+\end{itemize}
+\noindent Besides the main comparison, the script draws a \emph{learning curve}: it trains both
+estimators on random subsets of 60 to 310 patients (20 repeats each) and records the median test RMSE.
+
+\section{Results}
+
+Cross-validation chose $\lambda=7.20$. With the MAP noise estimate $\hat\sigma^2=2396$ this corresponds to
+a prior standard deviation of $\tau=\sqrt{\sigma^2/\lambda}\approx18.3$ on each standardised weight.
+
+\begin{table}[H]
+\centering\small
+\caption{MLE against MAP on the diabetes data (64 features, 310 training patients).}
+\label{tab:mlemap}
+\begin{tabular}{@{}l l S[table-format=2.2] S[table-format=2.2] S[table-format=1.4] S[table-format=1.3] S[table-format=4.1]@{}}
+\toprule
+\textbf{Estimator} & \textbf{Data} & {\textbf{MAE}} & {\textbf{RMSE}} & {\textbf{$R^2$}} & {\textbf{NLL}} & {$\|\vect w\|$}\\
+\midrule
+MLE & train & 34.99 & 44.98 & 0.6606 & 5.225 & 3209.7\\
+MLE & test  & 51.38 & 63.25 & 0.3078 & 5.714 & 3209.7\\
+\midrule
+MAP & train & 38.97 & 48.95 & 0.5980 & 5.310 & 64.3\\
+MAP & test  & \bfseries 49.36 & \bfseries 59.61 & \bfseries 0.3853 & \bfseries 5.551 & 64.3\\
+\midrule
+\multicolumn{7}{@{}l}{Reference: plain MLE with only the 10 raw inputs, test RMSE 58.66, $R^2=0.4046$}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+MLE fits the training patients better ($R^2$ 0.66 against 0.60) but generalises worse
+(test $R^2$ 0.31 against 0.39). That is overfitting, plain and simple. The weight norms show why:
+MLE uses weights fifty times larger than MAP, with big positive and negative values that cancel each
+other on the training data but not on new patients. MAP also gives the test targets a higher
+probability (lower negative log-likelihood).
+
+This is the classic regularisation picture. Training error only goes up as
+$\lambda$ grows, but test and CV error first go down (less overfitting) and then up again (the prior is
+so strong that the model cannot fit anything).
+
+\begin{table}[H]
+\centering\small
+\caption{Median test RMSE for small training sets (20 random subsets each).}
+\label{tab:mlemap-lc}
+\begin{tabular}{@{}l c c c c c c@{}}
+\toprule
+Training patients & 60 & 80 & 100 & 150 & 200 & 310\\
+\midrule
+MLE & 543.5 & 190.7 & 118.3 & 77.3 & 67.1 & 63.3\\
+MAP & 59.8 & 60.0 & 59.1 & 59.6 & 59.4 & 59.6\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The learning curve shows the biggest difference. With 60 patients there are fewer equations than
+weights (64), MLE has infinitely many perfect fits, and the one it returns is useless (RMSE 543 on a
+target whose standard deviation is 77). MAP is almost unaffected by the amount of data; the prior
+supplies what the data cannot. As the training set grows, MLE slowly catches up, as theory says it should.
+
+One honest observation: the plain model with only the ten raw inputs (test $R^2=0.40$) is still slightly
+better than MAP with 64 features. The extra polynomial features do not carry much new information for this
+dataset, and MAP's main achievement is to stop them from doing harm.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\linewidth]{\figpath{04\_MLE\_MAP}{rmse_vs_lambda.pdf}}\hfill
+\includegraphics[width=0.48\linewidth]{\figpath{04\_MLE\_MAP}{learning_curve.pdf}}
+\caption{The effect of prior strength and training-set size on MLE and MAP.}
+\end{figure}
+
+\section{Source code}
+\lstinputlisting[caption={\texttt{04\_MLE\_MAP/mle\_map.py}}]{04_MLE_MAP/mle_map.py}
+\clearpage

@@ -1,0 +1,36 @@
+California houses: 20433 rows, price 0.1-5.0 lakh USD (mean 2.1)
+Train/test split: 16347 / 4086
+
+Polynomial degree study (all four inputs, standardised):
+degree #weights train RMSE   CV RMSE test RMSE cond(Phi^T Phi)
+     1        5      0.776     0.777     0.777        4.58e+01
+     2       15      0.733     0.735     0.735        7.17e+03
+     3       35      0.702     0.710     0.712        7.43e+06
+     4       70      0.694     0.711     0.705        1.02e+10
+     5      126      0.687     0.826     0.758        2.08e+13
+     6      210      0.682     2.405     2.358        7.75e+16
+Degree with the lowest CV RMSE: 3
+
+Model                         #w  trMAE trRMSE   trR2  teMAE teRMSE   teR2 cvRMSE   (lakh USD)
+Simple (square feet only)      2  0.898  1.143 0.0189  0.908  1.149 0.0130      -
+Multiple linear (4 inputs)     5  0.572  0.776 0.5472  0.578  0.777 0.5481  0.777
+Polynomial, degree 3          35  0.512  0.702 0.6299  0.521  0.712 0.6214  0.710
+
+Multiple linear model in real units:
+   intercept                    -54,908 USD
+   Square_Feet                     -26 USD per unit
+   Location_Score              +49,302 USD per unit
+   Num_Bedrooms                   +158 USD per unit
+   Building_Age                 +1,898 USD per unit
+
+Degree-3 weights (standardised inputs, lakh USD), largest first:
+   1                                  +2.066
+   Num_Bedrooms                       +1.926
+   Square_Feet                        -1.763
+   Location_Score                     +1.396
+   Square_Feet*Num_Bedrooms           +0.483
+   Num_Bedrooms*Building_Age          +0.458
+   Num_Bedrooms*Num_Bedrooms          -0.367
+   Square_Feet*Building_Age           -0.349
+
+Test residuals: mean -0.010, std 0.712 lakh USD

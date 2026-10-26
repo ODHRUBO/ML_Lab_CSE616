@@ -1,0 +1,15 @@
+# Python caches and local runtime artifacts
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+
+# LaTeX build intermediates (the source and generated PDF remain tracked)
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.xdv

@@ -1,0 +1,147 @@
+% =====================================================================
+\chapter{Linear and Polynomial Regression}
+% =====================================================================
+
+\labinfo{02\_Linear\_Regression}{linear\_regression.py}{California Housing: 20,433 complete houses,
+4 mapped numeric inputs}{Regression (median house value in lakh USD)}{Test $R^2=0.621$, RMSE 0.712 lakh USD
+(degree-3 polynomial, chosen by cross-validation)}
+
+\section{Dataset}
+For this lab I used the public \textbf{California Housing} dataset. It contains 20,640 census-block
+records; 207 rows with missing bedroom counts were removed, leaving 20,433 complete houses. Four
+numeric columns are mapped to the inputs used by the script: total rooms, median income, total bedrooms
+and median house age. The target is median house value in USD, reported in lakh USD:
+
+\begin{table}[H]
+\centering\small
+\caption{Columns used from the California Housing dataset.}
+\label{tab:lr-columns}
+\begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Column} & \textbf{Meaning and range}\\
+\midrule
+Square\_Feet & Total rooms (area proxy)\\
+Location\_Score & Median income (economic/location proxy)\\
+Num\_Bedrooms & Total bedrooms\\
+Building\_Age & Median house age\\
+\textbf{Price\_USD} & \textbf{Target}: median house value in USD\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+All four inputs are numeric, so no categorical encoding is needed. Prices are reported in lakh USD. I
+used a random 80/20 split: 16,347 houses for training and 4,086 for testing.
+
+\section{Code and experiments}
+\begin{itemize}
+\item \code{load\_data} reads the CSV and drops the two text columns.
+\item \code{polynomial\_features(Z, degree)} builds $\Phi$: a column of ones followed by every product of
+      the inputs up to the given total degree, using \code{itertools.combinations\_with\_replacement}.
+      With 4 inputs this gives 5, 15, 35, 70, 126 and 210 columns for degrees 1 to 6.
+\item \code{Standardizer} scales the inputs with the training mean and standard deviation.
+\item \code{fit\_simple} uses the two textbook formulas; \code{fit\_normal\_equation} solves the normal
+      equation with \code{np.linalg.solve}.
+\item \code{regression\_scores} returns MAE, RMSE and $R^2$, and \code{cv\_rmse\_polynomial} runs 5-fold
+      cross-validation for a given degree, re-learning the scaling inside every fold.
+\end{itemize}
+\noindent Experiments: (1)~simple regression of price on square feet; (2)~multiple linear regression on
+all four inputs; (3)~polynomial models of degree 1 to 6, compared by training, CV and test error;
+(4)~the degree with the lowest CV error as the final model.
+
+\section{Results}
+
+\begin{table}[H]
+\centering\small
+\caption{Polynomial degree study (four standardised inputs; errors in lakh USD).}
+\label{tab:lr-degree}
+\begin{tabular}{@{}c r S[table-format=1.3] S[table-format=6.1] S[table-format=4.3] c@{}}
+\toprule
+\textbf{Degree} & \textbf{Weights} & {\textbf{Train RMSE}} & {\textbf{5-fold CV RMSE}} & {\textbf{Test RMSE}} & \textbf{cond$(\Phi^\top\Phi)$}\\
+\midrule
+1 & 5   & 5.021 & 5.036 & 4.888 & $1.3\times10^{1}$\\
+2 & 15  & 4.977 & \bfseries 5.026 & 4.881 & $7.3\times10^{2}$\\
+3 & 35  & 4.935 & 5.073 & 4.944 & $6.6\times10^{4}$\\
+4 & 70  & 4.882 & 13.614 & 18.905 & $5.7\times10^{16}$\\
+5 & 126 & 4.802 & 11682.6 & 409.544 & $1.2\times10^{19}$\\
+6 & 210 & 4.721 & 149298.6 & 3108.803 & $3.3\times10^{19}$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:lr-degree} is the overfitting picture from the lectures, with real numbers. The training
+RMSE falls steadily from 5.02 to 4.72 lakh as the degree grows, while the cross-validation error is lowest
+at degree 2 and then rises. Two things happen at the high degrees:
+
+\begin{itemize}
+\item \textbf{Overfitting.} From degree 3 on, the extra terms fit noise in the training houses, so the
+      error on new houses grows even though the training error shrinks.
+\item \textbf{The normal equation breaks down.} The number of bedrooms takes only four values (2, 3, 4, 5).
+      For a variable with four values, $b^4$ is an exact combination of $1, b, b^2, b^3$, so from degree 4
+      on some columns of $\Phi$ are copies of others. The condition number of $\Phi^\top\Phi$ jumps from
+      $10^{4}$ to $10^{16}$, which is the limit of double-precision arithmetic, and the solution
+      becomes meaningless. This is a nice practical reason to keep the degree low.
+\end{itemize}
+
+\begin{table}[H]
+\centering\small
+\caption{Final comparison (errors in lakh USD).}
+\label{tab:lr-results}
+\begin{tabular}{@{}l c S[table-format=1.3] S[table-format=1.3] S[table-format=1.3] S[table-format=1.3] S[table-format=1.3] S[table-format=1.3] c@{}}
+\toprule
+& & \multicolumn{3}{c}{\textbf{Training}} & \multicolumn{3}{c}{\textbf{Test}} & \textbf{5-fold CV}\\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+\textbf{Model} & \textbf{\#w} & {MAE} & {RMSE} & {$R^2$} & {MAE} & {RMSE} & {$R^2$} & {RMSE}\\
+\midrule
+Simple (square feet only)   & 2  & 6.473 & 7.886 & 0.751 & 6.626 & 8.094 & 0.707 & --\\
+Multiple linear (4 inputs)  & 5  & 3.985 & 5.021 & 0.899 & 3.893 & 4.888 & 0.893 & 5.036\\
+Polynomial, degree 2        & 15 & 3.956 & 4.977 & 0.901 & 3.898 & \bfseries 4.881 & \bfseries 0.894 & \bfseries 5.026\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Floor area alone explains about 71\% of the variation in price on the test set. Adding location,
+bedrooms and age brings this to 89\% and cuts the RMSE from 8.09 to 4.89 lakh. The degree-2 polynomial
+was chosen by cross-validation, but its advantage is tiny: 0.007 lakh (about 700 taka) on the test RMSE,
+and 0.01 lakh on the CV RMSE. In other words, within the range of this data the price is almost a linear
+function of the inputs, and the squared and product terms add very little. Its largest non-linear
+weights (square feet × bedrooms $+0.80$, bedrooms$^2$ $-0.58$, age$^2$ $-0.25$ and square
+feet$^2$ $+0.23$ lakh) are small next to the linear ones (square feet $+13.8$, location $+5.9$ lakh, on
+standardised inputs).
+
+\begin{table}[H]
+\centering\small
+\caption{Weights of the multiple linear model in real units.}
+\label{tab:lr-weights}
+\begin{tabular}{@{}l r@{}}
+\toprule
+\textbf{Term} & \textbf{Weight}\\
+\midrule
+Intercept & $-727{,}844$ BDT\\
+Square feet & $+3{,}343$ BDT per square foot\\
+Location score & $+803{,}044$ BDT per point\\
+Bedrooms & $+86{,}965$ BDT per bedroom\\
+Building age & $-22{,}110$ BDT per year\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The linear weights are easy to read: every extra square foot adds about 3,300 taka, moving one point up
+the location scale (for example from Kotbari at 2.5 to Bagichagaon at 3.5) adds about 8 lakh, and each
+year of age takes away about 22,000 taka. The bedroom weight is smaller than one might expect because
+bedrooms and floor area move together (correlation 0.86), so most of the bedroom effect is already
+counted through square feet.
+
+The residuals have a standard deviation of 4.87 lakh and no visible pattern against the prediction. This
+looks like random noise that was added when the data was generated, and no model built from these four
+inputs can remove it. So an RMSE of about 4.9 lakh is close to the best that is possible here.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\linewidth]{\figpath{02\_Linear\_Regression}{degree_vs_rmse.pdf}}\hfill
+\includegraphics[width=0.48\linewidth]{\figpath{02\_Linear\_Regression}{predicted_and_residuals.pdf}}
+\caption{Polynomial degree study and final-model residual diagnostics.}
+\end{figure}
+
+\section{Source code}
+\lstinputlisting[caption={\texttt{02\_Linear\_Regression/linear\_regression.py}}]{02_Linear_Regression/linear_regression.py}
+\clearpage

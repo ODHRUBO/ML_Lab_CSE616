@@ -1,0 +1,230 @@
+% =====================================================================
+%  CSE 615 - Machine Learning Lab Report
+%  Main file: main_share.tex
+%  Compile with XeLaTeX twice so the contents, figure references and page totals settle:
+%      xelatex main_share.tex
+%      xelatex main_share.tex
+%  The fonts (Times New Roman, DejaVu Sans Mono, TeX Gyre Termes Math) are loaded from ./fonts,
+%  so the project compiles the same way on any machine, including Overleaf.
+%  Each lab chapter includes its generated PDFs from that lab's figures/ folder.
+% =====================================================================
+\documentclass[11pt,a4paper,oneside]{report}
+
+% ---------- details for the cover page (edit these) ----------
+\newcommand{\StudentName}{}
+\newcommand{\StudentID}{}
+\newcommand{\StudentSession}{}
+\newcommand{\CourseCode}{CSE 615}
+\newcommand{\CourseTitle}{Machine Learning}
+\newcommand{\TeacherName}{[Teacher's Name]}
+\newcommand{\TeacherDesignation}{[Designation]}
+\newcommand{\SubmissionDate}{\today}
+
+% ---------- page and fonts ----------
+\usepackage[a4paper,top=2.6cm,bottom=2.5cm,left=2.5cm,right=2.5cm,headheight=15pt]{geometry}
+\usepackage{amsmath}
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\setmainfont{times}[Path=fonts/, Extension=.ttf,
+  BoldFont=timesbd, ItalicFont=timesi, BoldItalicFont=timesbi]
+\setmonofont{DejaVuSansMono}[Path=fonts/, Extension=.ttf,
+  BoldFont=DejaVuSansMono-Bold, ItalicFont=DejaVuSansMono-Oblique, Scale=0.70]
+\setmathfont{texgyretermes-math}[Path=fonts/, Extension=.otf]
+\usepackage{microtype}
+\linespread{1.04}
+\setlength{\emergencystretch}{1.5em}
+
+% ---------- colours (used only inside figures; all text is black and white) ----------
+\usepackage{xcolor}
+\definecolor{accent}{HTML}{2A78D6}
+\definecolor{accentdark}{HTML}{1C5CAB}
+\definecolor{accentlight}{HTML}{CDE2FB}
+\definecolor{accentpale}{HTML}{F1F6FD}
+\definecolor{orange}{HTML}{EB6834}
+\definecolor{orangelight}{HTML}{FBD9CB}
+\definecolor{aqua}{HTML}{1BAF7A}
+\definecolor{ink}{HTML}{0B0B0B}
+\definecolor{inksoft}{HTML}{52514E}
+\definecolor{muted}{HTML}{898781}
+\definecolor{rulec}{HTML}{C3C2B7}
+\definecolor{codebg}{HTML}{F7F7F5}
+
+% ---------- general packages ----------
+\usepackage{graphicx}
+\usepackage{booktabs,tabularx,array,multirow}
+\usepackage{siunitx}
+\sisetup{mode=math, group-minimum-digits=4, detect-weight=true}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf, labelsep=period, skip=6pt}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\setlist{itemsep=2pt, topsep=4pt}
+\usepackage{float}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric,decorations.pathreplacing,fit,backgrounds,matrix}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{titlesec}
+\usepackage{titletoc}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+
+% ---------- chapter and section style ----------
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries}
+  {\large LAB~\thechapter}
+  {4pt}
+  {\Huge}
+  [{\vspace{6pt}\titlerule[0.8pt]}]
+\titleformat{name=\chapter,numberless}[display]
+  {\normalfont\bfseries}{}{0pt}{\Huge}[{\vspace{6pt}\titlerule[0.8pt]}]
+\titlespacing*{\chapter}{0pt}{-12pt}{16pt}
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{0.7em}{}
+\titlespacing*{\section}{0pt}{16pt}{8pt}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{1}
+\renewcommand{\thechapter}{\arabic{chapter}}
+
+% table of contents look
+\titlecontents{chapter}[2.4em]{\addvspace{3pt}\bfseries}
+  {\contentslabel[\thecontentslabel]{2.4em}}{}{\titlerule*[0.6pc]{.}\contentspage}
+\titlecontents{section}[4.8em]{\small}
+  {\contentslabel{2.4em}}{}{\titlerule*[0.6pc]{.}\contentspage}
+
+% ---------- header and footer ----------
+\renewcommand{\chaptermark}[1]{\markboth{\ifnum\value{chapter}>0 Lab~\thechapter: \fi#1}{}}
+\fancypagestyle{main}{%
+  \fancyhf{}%
+  \fancyhead[L]{\small\nouppercase{\leftmark}}%
+  \fancyhead[R]{\small\CourseCode\ Lab Report}%
+  \fancyfoot[C]{\small Page \thepage\ of \pageref*{LastPage}}%
+  \renewcommand{\headrulewidth}{0.4pt}%
+}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small Page \thepage\ of \pageref*{LastPage}}\renewcommand{\headrulewidth}{0pt}}
+\fancypagestyle{front}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% ---------- boxes ----------
+\newtcolorbox{infobox}{enhanced, colback=white, colframe=black, boxrule=0.6pt, sharp corners,
+  left=10pt, right=10pt, top=7pt, bottom=7pt, fontupper=\small}
+\newtcolorbox{stepsbox}[1][]{enhanced, colback=white, colframe=black, boxrule=0.6pt, sharp corners,
+  left=8pt, right=8pt, top=8pt, bottom=6pt, coltitle=black, colbacktitle=white,
+  fonttitle=\bfseries\small, title={#1}, fontupper=\small, attach boxed title to top left={xshift=8pt,yshift=-8pt},
+  boxed title style={boxrule=0pt, colback=white, sharp corners}}
+
+% info box at the start of every lab
+\newcommand{\labinfo}[5]{%
+\begin{infobox}
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}l X@{}}
+Folder & \texttt{#1}\\
+Script & \texttt{#2}\\
+Dataset & #3\\
+Task & #4\\
+Main result & #5\\
+\end{tabularx}
+\end{infobox}}
+
+% ---------- code listings ----------
+\lstdefinestyle{py}{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries,
+  stringstyle=,
+  commentstyle=\color{green!50!black}\itshape,
+  numbers=left, numberstyle=\tiny, numbersep=5pt,
+  xleftmargin=12pt,
+  breaklines=true, breakatwhitespace=false, postbreak=\mbox{$\hookrightarrow$\space},
+  showstringspaces=false, columns=fullflexible, keepspaces=true, tabsize=4,
+  aboveskip=3pt, belowskip=3pt,
+  upquote=true, literate={£}{{\pounds}}1,
+  morekeywords={self,True,False,None}
+}
+\lstset{style=py}
+\newcommand{\code}[1]{\texttt{#1}}
+
+% ---------- small helpers ----------
+\newcommand{\figpath}[2]{#1/figures/#2}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\vect}[1]{\mathbf{#1}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\begin{document}
+
+% =====================================================================
+%  Cover page
+% =====================================================================
+\begin{titlepage}
+\begin{tikzpicture}[remember picture, overlay]
+  \draw[line width=1.4pt] ([xshift=1.5cm,yshift=-1.5cm]current page.north west) rectangle ([xshift=-1.5cm,yshift=1.5cm]current page.south east);
+  \draw[line width=0.4pt] ([xshift=1.68cm,yshift=-1.68cm]current page.north west) rectangle ([xshift=-1.68cm,yshift=1.68cm]current page.south east);
+\end{tikzpicture}
+\centering
+\vspace*{1.2cm}
+{\Large\bfseries University of Chittagong\par}
+\vspace{4pt}
+{\large Department of Computer Science and Engineering\par}
+\vspace{2.2cm}
+{\large\bfseries \CourseCode: \CourseTitle\par}
+\vspace{0.6cm}
+{\fontsize{34}{40}\selectfont\bfseries Lab Report\par}
+\vspace{0.5cm}
+{\Large Thirteen Machine Learning Algorithms\\[2pt] Built from Scratch in Python\par}
+\vspace{0.5cm}
+{\normalsize k-NN \;·\; Linear Regression \;·\; Gradient Descent \;·\; MLE and MAP \;·\; Naive Bayes\\
+Logistic Regression \;·\; Perceptron \;·\; MLP \;·\; RBF Network \;·\; SVM \;·\; SVR\\
+Decision Tree (ID3) \;·\; Genetic Algorithm\par}
+\vfill
+\begin{minipage}[t]{0.46\textwidth}
+\begin{tcolorbox}[colback=white, colframe=black, boxrule=0.6pt, sharp corners, left=10pt, top=8pt, bottom=8pt, equal height group=cover]
+{\small\bfseries SUBMITTED BY}\par\vspace{6pt}
+{\small Department of CSE\par University of Chittagong}
+\end{tcolorbox}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.46\textwidth}
+\begin{tcolorbox}[colback=white, colframe=black, boxrule=0.6pt, sharp corners, left=10pt, top=8pt, bottom=8pt, equal height group=cover]
+{\small\bfseries SUBMITTED TO}\par\vspace{6pt}
+{\bfseries \TeacherName}\par\vspace{3pt}
+{\small \TeacherDesignation\par Department of CSE\par University of Chittagong}
+\end{tcolorbox}
+\end{minipage}
+\vspace{1.0cm}
+
+{\small Date of submission: \SubmissionDate\par}
+\vspace{1.2cm}
+\end{titlepage}
+
+% =====================================================================
+%  Front matter
+% =====================================================================
+\pagenumbering{roman}
+\pagestyle{front}
+{\linespread{1.0}\selectfont\tableofcontents}
+\thispagestyle{front}
+\clearpage
+
+\pagenumbering{arabic}
+\pagestyle{main}
+
+\input{chapters_share/00_introduction}
+\input{chapters_share/lab01_knn}
+\input{chapters_share/lab02_linear_regression}
+\input{chapters_share/lab03_gradient_descent}
+\input{chapters_share/lab04_mle_map}
+\input{chapters_share/lab05_naive_bayes}
+\input{chapters_share/lab06_logistic_regression}
+\input{chapters_share/lab07_perceptron}
+\input{chapters_share/lab08_mlp}
+\input{chapters_share/lab09_rbf}
+\input{chapters_share/lab10_svm}
+\input{chapters_share/lab11_svr}
+\input{chapters_share/lab12_id3}
+\input{chapters_share/lab13_ga}
+\input{chapters_share/99_summary}
+
+\end{document}

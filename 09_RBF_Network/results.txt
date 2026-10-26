@@ -1,0 +1,32 @@
+Seeds data: 210 kernels, 7 features, 70 of each variety
+Train/test split: 147 / 63
+
+5-fold CV accuracy (rows: number of centres K, columns: width scale)
+    K  x0.5    x1.0    x2.0    x4.0  
+    2  0.5985  0.7689  0.8163  0.8311
+    3  0.8911  0.9252  0.9259  0.9259
+    5  0.8844  0.9252  0.9259  0.9193
+    8  0.8926  0.9052  0.9326  0.9526
+   10  0.8919  0.9052  0.9252  0.9526
+   15  0.8778  0.9052  0.9259  0.9185
+   20  0.8704  0.8911  0.9319  0.9452
+   30  0.8704  0.8985  0.9252  0.9519
+   40  0.8311  0.9044  0.9185  0.9385
+Chosen: K = 8, width scale = 4.0 (CV accuracy 0.9526)
+
+Test-set results (sigma = 6.720)
+  Accuracy        : 0.9683
+  Macro precision : 0.9683
+  Macro recall    : 0.9683
+  Macro F1        : 0.9683
+  Kama     : precision=0.952 recall=0.952 f1=0.952
+  Rosa     : precision=1.000 recall=1.000 f1=1.000
+  Canadian : precision=0.952 recall=0.952 f1=0.952
+  Confusion matrix:
+[[20  0  1]
+ [ 0 21  0]
+ [ 1  0 20]]
+
+k-means centres vs random centres (same K, test accuracy):
+   width scale x1.0: k-means 0.9048, random 0.8730
+   width scale x4.0: k-means 0.9683, random 0.9683

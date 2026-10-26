@@ -1,0 +1,76 @@
+% =====================================================================
+\chapter*{Summary}
+\addcontentsline{toc}{chapter}{Summary and References}
+\markboth{Summary}{}
+% =====================================================================
+
+Table~\ref{tab:summary} collects the main result of every lab. The numbers are not comparable across
+rows, since each lab uses a different dataset and task; they show what each algorithm achieved on its
+own problem.
+
+\begin{table}[H]
+\centering\small
+\caption{Main results of the thirteen labs (all on held-out test data).}
+\label{tab:summary}
+\begin{tabularx}{\linewidth}{@{}r l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Lab} & \textbf{Algorithm} & \textbf{Dataset} & \textbf{Main test result}\\
+\midrule
+1  & k-NN                   & Wine                 & Accuracy 92.5\%, macro F1 0.924\\
+2  & Linear / polynomial regression & California Housing & $R^2=0.621$, RMSE 0.712 lakh USD (degree 3)\\
+3  & Gradient descent       & Concrete strength    & $R^2=0.835$, RMSE 6.66 MPa (same as exact solution)\\
+4  & MLE vs MAP             & Diabetes progression & RMSE 59.6 (MAP) vs 63.3 (MLE)\\
+5  & Naive Bayes            & SMS spam             & Accuracy 99.0\%, spam F1 0.963, AUC 0.991\\
+6  & Logistic regression    & Breast cancer        & Accuracy 97.3\%, recall 97.6\%, AUC 0.997\\
+7  & Perceptron             & Iris (two species)   & Accuracy 100\%, F1 1.000\\
+8  & Multi-layer perceptron & Iris                 & Accuracy 96.7\%, macro F1 0.966\\
+9  & RBF network            & Wheat seeds          & Accuracy 96.8\%, macro F1 0.968\\
+10 & SVM (RBF kernel)       & Sonar                & Accuracy 95.1\% (CV 85.0\%), AUC 0.969\\
+11 & SVR (RBF kernel)       & Auto MPG             & $R^2=0.887$, RMSE 2.67 mpg\\
+12 & Decision tree (ID3)    & Mushroom             & Accuracy 100\%, macro F1 1.000\\
+13 & Genetic algorithm      & Breast cancer        & 12 of 30 features; CV accuracy 96.8\% $\to$ 98.5\%\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section*{Lessons that came up again and again}
+\begin{itemize}
+\item \textbf{Preparing the data mattered as much as the algorithm.} Scaling the features was worth 25
+      points for k-NN (Lab~1); taking the log of concrete age (Lab~3) made a simple linear model work
+      well; standardising the inputs kept the polynomial models in Lab~2 numerically stable for longer;
+      and removing features improved k-NN's cross-validation score on the breast-cancer data (Lab~13).
+\item \textbf{Every model needed some way to control its complexity.} This was $k$ in k-NN, the polynomial degree in Lab~2, $\lambda$ in
+      MAP, the hidden-layer size of the MLP, the number of centres and the width in the RBF network,
+      $C$ and $\gamma$ in the SVM and SVR, and the depth of the tree. In every case I chose it with
+      cross-validation on the training data, never with the test set.
+\item \textbf{The same ideas link many of the algorithms.} Least squares appears in linear regression, in
+      MLE under Gaussian noise and in the output layer of the RBF network. Gradient descent trains logistic
+      regression and the MLP. Lagrange multipliers and kernels connect the SVM and SVR. The perceptron's
+      failure on XOR is the reason the MLP exists.
+\item \textbf{Small test sets give noisy numbers.} In Labs 1 and 10 the test accuracy and the CV
+      accuracy differed by 7--10 points. Reporting both, and saying which one to trust, is more honest
+      than reporting one number.
+\end{itemize}
+
+Writing every algorithm from scratch took more time than calling a library, but it forced me to
+understand details that are easy to skip in a lecture: how ties are broken in k-NN, why log-probabilities
+are needed in Naive Bayes, what the SMO update actually does, and what happens to an ID3 branch with no
+training examples.
+
+\section*{References}
+\begin{enumerate}[label={[\arabic*]}, leftmargin=2.2em, itemsep=1pt, font=\small]
+\small
+\item M.~T. Hagan, H.~B. Demuth, M.~H. Beale and O. De~Jesús, \emph{Neural Network Design}, 2nd ed., 2014 (Chapters 2, 3, 4 and 8).
+\item S. Haykin, \emph{Neural Networks and Learning Machines}, 3rd ed., Pearson, 2009.
+\item C.~M. Bishop, \emph{Pattern Recognition and Machine Learning}, Springer, 2006.
+\item J.~R. Quinlan, ``Induction of decision trees'', \emph{Machine Learning}, 1(1):81--106, 1986.
+\item J.~C. Platt, ``Sequential minimal optimization: A fast algorithm for training support vector machines'', Microsoft Research Technical Report MSR-TR-98-14, 1998.
+\item R.-E. Fan, P.-H. Chen and C.-J. Lin, ``Working set selection using second order information for training support vector machines'', \emph{Journal of Machine Learning Research}, 6:1889--1918, 2005.
+\item A.~J. Smola and B. Schölkopf, ``A tutorial on support vector regression'', \emph{Statistics and Computing}, 14:199--222, 2004.
+\item D. Dua and C. Graff, \emph{UCI Machine Learning Repository}, University of California, Irvine. Source of the Wine, Concrete, SMS Spam, Breast Cancer Wisconsin, Iris, Seeds, Sonar, Auto MPG and Mushroom datasets.
+\item B. Efron, T. Hastie, I. Johnstone and R. Tibshirani, ``Least angle regression'', \emph{Annals of Statistics}, 32(2):407--499, 2004. Source of the diabetes dataset.
+\item I.-C. Yeh, ``Modeling of strength of high-performance concrete using artificial neural networks'', \emph{Cement and Concrete Research}, 28(12):1797--1808, 1998.
+\item T.~A. Almeida, J.~M. Gómez Hidalgo and A. Yamakami, ``Contributions to the study of SMS spam filtering'', \emph{Proc. ACM DocEng}, 2011.
+\item R.~P. Gorman and T.~J. Sejnowski, ``Analysis of hidden units in a layered network trained to classify sonar targets'', \emph{Neural Networks}, 1:75--89, 1988.
+\item M. Bohanec and V. Rajkovič, ``Knowledge acquisition and explanation for multi-attribute decision making'', \emph{8th Intl. Workshop on Expert Systems and their Applications}, Avignon, 1988.
+\end{enumerate}

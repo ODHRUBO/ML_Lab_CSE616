@@ -1,0 +1,74 @@
+% =====================================================================
+\chapter{Multi-Layer Perceptron}
+% =====================================================================
+
+\labinfo{08\_MLP}{mlp.py}{UCI Iris: 150 flowers, 4 standardised measurements}{3-class classification
+(setosa / versicolor / virginica)}{Test accuracy 96.7\%, macro F1 0.966 (4 hidden units)}
+
+\section{Dataset}
+The \textbf{Iris} dataset (UCI) contains 150 flowers, 50 from each of three species. Each flower has
+four numeric measurements: sepal length, sepal width, petal length and petal width. I standardised the
+four inputs and split the data into 98 training, 22 validation and 30 test flowers.
+
+\section{Code and experiments}
+\begin{itemize}
+\item \code{sigmoid}, \code{softmax} (which subtracts the row maximum before exponentiating, to avoid
+      overflow) and \code{one\_hot} are small helpers.
+\item The \code{MLP} class holds $W_1$ (64×H), $\vect b_1$, $W_2$ (H×10) and $\vect b_2$.
+      \code{forward} returns $\vect h$ and $\vect p$. \code{backward} implements the four
+      backpropagation formulas above and applies the gradient step. \code{fit} runs mini-batch training
+      (batch 32, learning rate 0.5, 100 epochs) and records the learning curves.
+\item \code{confusion\_matrix} uses \code{np.add.at} to count (true, predicted) pairs, and
+      \code{per\_class\_scores} turns the matrix into precision, recall and F1 per digit.
+\end{itemize}
+\noindent Experiments: (1)~hidden sizes 4, 8, 16, 32, 64 and 128, compared on the validation set;
+(2)~the chosen network trained once more and evaluated on the test file.
+
+\section{Results}
+
+\begin{table}[H]
+\centering\small
+\caption{Choosing the size of the hidden layer (100 epochs each).}
+\label{tab:mlp-hidden}
+\begin{tabular}{@{}l c c c c c c@{}}
+\toprule
+Hidden units & 4 & 8 & 16 & 32 & 64 & 128\\
+Weights      & 310 & 610 & 1,210 & 2,410 & 4,810 & 9,610\\
+\midrule
+Training accuracy   & 0.959 & 0.959 & 0.959 & 0.888 & 0.806 & 0.684\\
+Validation accuracy & \textbf{0.955} & 0.864 & 0.818 & 0.727 & 0.591 & 0.591\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Four hidden units gave the best validation result on this small Iris split, so the final network uses
+4 inputs, 4 hidden units and 3 outputs (310 parameters). Larger hidden layers overfit the small training
+sample and performed worse on validation.
+
+\begin{table}[H]
+\centering\small
+\caption{Test-set results (30 Iris flowers).}
+\label{tab:mlp-test}
+\begin{tabular}{@{}l c c c c c c c c c c@{}}
+\toprule
+\multicolumn{11}{@{}l}{Accuracy \textbf{0.9667} (1 mistake) \quad Macro precision 0.9722 \quad Macro recall 0.9630 \quad Macro F1 0.9659}\\
+\midrule
+Species & Setosa & Versicolor & Virginica \\
+F1 & 1.000 & 0.941 & 0.957\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The network recognises 96.7\% of the test flowers. The single error is between the two species whose
+measurements overlap most, while setosa is separated cleanly by the petal measurements.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\linewidth]{\figpath{08\_MLP}{learning_curves.pdf}}\hfill
+\includegraphics[width=0.48\linewidth]{\figpath{08\_MLP}{confusion_matrix.pdf}}
+\caption{MLP learning curves and Iris test confusion matrix.}
+\end{figure}
+
+\section{Source code}
+\lstinputlisting[caption={\texttt{08\_MLP/mlp.py}}]{08_MLP/mlp.py}
+\clearpage

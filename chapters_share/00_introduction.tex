@@ -1,0 +1,121 @@
+% =====================================================================
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+\markboth{Introduction}{}
+% =====================================================================
+
+This report covers the algorithms we studied in \CourseCode{} (\CourseTitle). For each one I wrote my
+own implementation in plain Python, picked a real dataset, ran the algorithm on it and measured how well
+it did. Every lab follows the same plan:
+
+\begin{enumerate}[label=\arabic*.]
+  \item a description of the dataset and how I prepared it,
+  \item how the code is organised and what experiments it runs,
+  \item the results (metrics and tables), and
+  \item the full source code.
+\end{enumerate}
+
+\section*{Ground rules I followed}
+\begin{itemize}
+  \item \textbf{No machine learning libraries.} The algorithms are written with NumPy and Pandas only.
+        scikit-learn, PyTorch, TensorFlow and similar libraries are not used anywhere, not even for
+        splitting the data or computing metrics. Matplotlib is used only to draw the figures.
+  \item \textbf{Plain scripts, no notebooks.} Each lab is one \texttt{.py} file that runs from top to
+        bottom with \texttt{python <script>.py}.
+  \item \textbf{One folder per algorithm.} Every folder is self-contained: it has its own
+        \texttt{data/} folder, its script, a \texttt{figures/} folder that the script fills, and a
+        \texttt{results.txt} file with every number the script prints. Small helpers such as the
+        train/test split are repeated in each script on purpose, so any folder can be copied and run
+        on its own.
+  \item \textbf{A different dataset for every algorithm.} Thirteen labs, thirteen datasets.
+  \item \textbf{Repeatable results.} All random choices use the seed 42, so running a script again
+        gives the same numbers as this report (only the timing numbers change from machine to machine).
+\end{itemize}
+
+\section*{The thirteen labs}
+
+\begin{table}[H]
+\centering\small
+\caption{Algorithms, datasets and tasks covered in this report.}
+\label{tab:overview}
+\begin{tabularx}{\linewidth}{@{}l l >{\raggedright\arraybackslash}X l@{}}
+\textbf{Lab} & \textbf{Algorithm} & \textbf{Dataset (size)} & \textbf{Task} \\
+\midrule
+1  & k-Nearest Neighbours         & Wine (178 × 13)                          & 3-class classification \\
+2  & Linear / Polynomial Regression & California Housing (20{,}433 × 4)       & Regression \\
+3  & Gradient Descent             & Concrete Compressive Strength (1{,}030 × 8) & Regression \\
+4  & MLE and MAP estimation       & Diabetes Progression (442 × 10)          & Regression \\
+5  & Naive Bayes                  & SMS Spam Collection (5{,}572 messages)   & Binary text classification \\
+6  & Logistic Regression          & Breast Cancer Wisconsin (569 × 30)       & Binary classification \\
+7  & Perceptron                   & Iris, two species (100 × 4)              & Binary classification \\
+8  & Multi-Layer Perceptron       & Iris (150 × 4)                            & 3-class classification \\
+9  & RBF Neural Network            & Wheat Seeds (210 × 7)                    & 3-class classification \\
+10 & Support Vector Machine       & Sonar, Mines vs.\ Rocks (208 × 60)       & Binary classification \\
+11 & Support Vector Regression    & Auto MPG (392 × 8)                       & Regression \\
+12 & Decision Tree (ID3)          & Mushroom (8{,}124 × 22)                  & Binary classification \\
+13 & Genetic Algorithm            & Breast Cancer Wisconsin (569 × 30)       & Feature selection \\
+\bottomrule
+\end{tabularx}
+\end{table}
+All datasets are public. Most come from the UCI Machine Learning Repository. I converted every source
+file to a CSV with proper column names and kept it next to the script that uses it. Lab~2 uses California
+Housing, Labs~7 and~8 use Iris, Lab~12 uses Mushroom, and Lab~13 uses the Breast Cancer Wisconsin
+Diagnostic data.
+
+\section*{How to run the code}
+You need Python 3.10 or newer with \texttt{numpy}, \texttt{pandas} and \texttt{matplotlib}.
+
+\begin{lstlisting}[language=bash, numbers=none, frame=none, xleftmargin=10pt]
+cd "01_KNN"
+python knn.py
+\end{lstlisting}
+
+The script prints its results, writes them to \texttt{results.txt}, and saves its plots in
+\texttt{figures/}. Most labs finish in a few seconds. The SVR lab takes about a minute, because it tries many
+parameter settings.
+
+\section*{How I measured performance}
+The course topics on overfitting, cross-validation and the confusion matrix are not algorithms on their
+own, so instead of giving them separate labs I used them inside every lab.
+
+\paragraph{Train, validation and test data.} Every lab keeps a test set aside (20--30\% of the data) and
+does not touch it until the very end. When a lab has to choose something (such as $k$ in k-NN or $C$
+in an SVM), it uses \emph{k-fold cross-validation} on the training part only: the training data is cut
+into 5 folds, the model is trained on 4 and scored on the 5th, and this is repeated so every fold is used
+once for scoring. For classification I use \emph{stratified} splits, which keep the class proportions the
+same in every part. The MLP lab holds out validation and test portions from the Iris data instead.
+
+\paragraph{Classification metrics.} For two classes, the confusion matrix counts true positives (TP),
+false positives (FP), true negatives (TN) and false negatives (FN). From these:
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}l l >{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Metric} & \textbf{Formula} & \textbf{What it answers} \\
+\midrule
+Accuracy & $(TP+TN)/N$, with $N$ = all examples & How often is the model right? \\
+Precision & $TP/(TP+FP)$ & When it says ``positive'', how often is that true? \\
+Recall (sensitivity) & $TP/(TP+FN)$ & How many of the real positives did it find? \\
+Specificity & $TN/(TN+FP)$ & How many of the real negatives did it leave alone? \\
+F1 score & $2PR/(P+R)$, with $P$ = precision, $R$ = recall & One number that balances both \\
+ROC AUC & area under the TPR--FPR curve & How well the scores rank positives above negatives \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\noindent For more than two classes I compute precision, recall and F1 for each class (that class against
+the rest) and report their plain average, the \emph{macro} average, so small classes count as much as big
+ones.
+
+\paragraph{Regression metrics.} With true values $y_i$ and predictions $\hat y_i$:
+\[
+\text{MAE}=\frac1n\sum_i|y_i-\hat y_i|,\qquad
+\text{RMSE}=\sqrt{\frac1n\sum_i(y_i-\hat y_i)^2},\qquad
+R^2=1-\frac{\sum_i(y_i-\hat y_i)^2}{\sum_i(y_i-\bar y)^2}.
+\]
+MAE and RMSE are in the units of the target (dollars, MPa, miles per gallon); $R^2$ is the share of the
+variation in $y$ that the model explains, where $1$ is perfect and $0$ is no better than always guessing
+the mean.
+
+\clearpage

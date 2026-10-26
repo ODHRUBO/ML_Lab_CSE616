@@ -1,0 +1,29 @@
+Auto MPG: 392 cars after dropping 0 with missing horsepower; mpg range 9-47, mean 23.4
+Train/test split: 314 / 78
+
+5-fold CV RMSE (mpg), best 8 settings of (C, gamma, eps):
+   C=100  gamma=0.1   eps=0.5  -> 2.526
+   C=100  gamma=0.1   eps=1.0  -> 2.540
+   C=100  gamma=0.05  eps=1.0  -> 2.543
+   C=100  gamma=0.05  eps=0.5  -> 2.560
+   C=1000 gamma=0.02  eps=0.5  -> 2.569
+   C=1000 gamma=0.02  eps=1.0  -> 2.579
+   C=1000 gamma=0.05  eps=0.5  -> 2.612
+   C=10   gamma=0.1   eps=0.5  -> 2.621
+
+Model                                 MAE   RMSE      R2   #SV  in tube
+Linear regression (least squares)   2.749  3.765  0.7759     -        -
+Linear SVR (C=10, eps=1.0)          2.798  4.029  0.7434   221    24.4%
+RBF SVR (C=100, gamma=0.1, eps=0.5)  1.935  2.672  0.8871   241    29.5%
+
+RBF SVR used 241 of 314 training cars as support vectors (77%); SMO needed 4750 iterations
+
+Effect of eps (C and gamma fixed):
+   eps = 0.1  -> 300 support vectors, test RMSE 2.681
+   eps = 0.25 -> 276 support vectors, test RMSE 2.657
+   eps = 0.5  -> 241 support vectors, test RMSE 2.672
+   eps = 1.0  -> 193 support vectors, test RMSE 2.673
+   eps = 2.0  -> 111 support vectors, test RMSE 2.820
+   eps = 3.0  ->  67 support vectors, test RMSE 3.038
+   eps = 4.0  ->  44 support vectors, test RMSE 3.283
+   eps = 6.0  ->  24 support vectors, test RMSE 3.809

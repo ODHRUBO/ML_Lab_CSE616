@@ -1,0 +1,89 @@
+% =====================================================================
+\chapter{Gradient Descent}
+% =====================================================================
+
+\labinfo{03\_Gradient\_Descent}{gradient\_descent.py}{UCI Concrete Compressive Strength: 1,030 concrete
+mixes, 8 inputs}{Regression (linear model trained by gradient descent)}{Test $R^2=0.835$, RMSE 6.66 MPa;
+SGD lands on the exact least-squares weights}
+
+\section{Dataset}
+The \textbf{Concrete Compressive Strength} dataset (UCI, Yeh 1998) has 1,030 concrete mixes. Seven
+inputs give the amount of each ingredient in kg per m$^3$ of mix (cement, blast-furnace slag, fly ash,
+water, superplasticizer, coarse aggregate, fine aggregate), and the eighth is the age of the sample in
+days (1 to 365). The target is the compressive strength in MPa, from 2.3 to 82.6 (mean 35.8).
+
+Concrete gains most of its strength in the first few weeks and then levels off, so strength grows
+roughly with the \emph{logarithm} of age. I therefore used $\log(\text{age})$ instead of age; this
+single change is what allows a linear model to do well here. The inputs were standardised with the
+training statistics, and the data was split 80/20 (824 training, 206 test mixes).
+
+\section{Code and experiments}
+\begin{itemize}
+\item \code{mse\_loss} and \code{mse\_gradient} are the two formulas above, written with matrix products.
+\item \code{gradient\_descent(X, y, lr, epochs, batch\_size)} is a single function for all three
+      variants. \code{batch\_size=None} means batch GD, \code{32} means mini-batch, \code{1} means SGD.
+      It shuffles the rows each epoch, applies the update for every batch, records the loss after
+      each epoch, and stops early if the loss becomes infinite.
+\item The script also computes the exact least-squares weights $\vect w^*$ with the normal equation and
+      the largest eigenvalue of $X^\top X/n$, so the gradient-descent results can be checked against
+      the theory.
+\end{itemize}
+\noindent The experiments are: (1)~the three variants for 200 epochs each; (2)~batch GD with five
+learning rates, the last one just above the theoretical limit; (3)~a picture of the path that gradient
+descent takes on a two-weight version of the problem.
+
+\section{Results}
+
+The largest eigenvalue of $X^\top X/n$ was $2.199$, so theory says batch GD is stable only for
+$\eta<2/2.199=0.909$.
+
+\begin{table}[H]
+\centering\footnotesize\setlength{\tabcolsep}{4.5pt}
+\caption{The three variants after 200 epochs. $\|\vect w-\vect w^*\|$ is the distance to the exact
+least-squares weights. Times are from my run and will differ on other machines.}
+\label{tab:gd-variants}
+\begin{tabular}{@{}l r r S[table-format=2.3] S[table-format=1.3] S[table-format=1.3] S[table-format=1.4] S[table-format=1.3]@{}}
+\toprule
+\textbf{Method} & \textbf{Updates} & \textbf{Time} & {\textbf{Train $J$}} & {\textbf{Test MAE}} & {\textbf{Test RMSE}} & {\textbf{Test $R^2$}} & {$\|\vect w-\vect w^*\|$}\\
+\midrule
+Batch GD, $\eta=0.1$          & 200     & 0.01 s & 27.000 & 5.374 & 6.840 & 0.8258 & 7.449\\
+Mini-batch (32), $\eta=0.01$  & 5,200   & 0.05 s & 26.246 & 5.242 & 6.697 & 0.8330 & 2.740\\
+SGD, $\eta=0.001$             & 164,800 & 1.1 s  & 26.131 & 5.182 & 6.656 & 0.8350 & 0.100\\
+\midrule
+Normal equation (exact)       & --      & --     & 26.128 & 5.184 & 6.659 & 0.8349 & 0.000\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All three methods end up with almost the same test error as the exact solution (test $R^2$ between 0.826
+and 0.835). SGD came within $0.1$ of the exact weights. Batch GD, after its 200 updates, still has a
+loss of 27.0 instead of 26.13, but its weights are surprisingly far away (distance 7.4) even though its
+predictions are nearly as good. The reason is that the seven ingredient amounts are tied to each other: they
+describe one cubic metre of concrete, so their total is almost the same for every mix (about
+2,340~kg, varying by only about 3\%). The loss surface therefore has a long, flat
+valley in which very different weight vectors give almost the same predictions, and gradient descent
+crawls along that valley slowly.
+
+\begin{table}[H]
+\centering\small
+\caption{Batch gradient descent with different learning rates (200 epochs, exact minimum $J=26.128$).}
+\label{tab:gd-lr}
+\begin{tabular}{@{}l c c c c c@{}}
+\toprule
+$\eta$ & 0.001 & 0.01 & 0.1 & 0.5 & 0.955 \\
+\midrule
+Final training loss & 525.6 & 44.49 & 27.00 & 26.13 & diverged \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\linewidth]{\figpath{03\_Gradient\_Descent}{gd_variants_loss.pdf}}\hfill
+\includegraphics[width=0.48\linewidth]{\figpath{03\_Gradient\_Descent}{learning_rate_effect.pdf}}
+\caption{Loss curves for GD variants and learning-rate stability.}
+\end{figure}
+
+\section{Source code}
+\lstinputlisting[caption={\texttt{03\_Gradient\_Descent/gradient\_descent.py}}]{03_Gradient_Descent/gradient_descent.py}
+\clearpage

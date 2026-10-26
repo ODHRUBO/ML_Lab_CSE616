@@ -1,0 +1,75 @@
+% =====================================================================
+\chapter{Support Vector Machine}
+% =====================================================================
+
+\labinfo{10\_SVM}{svm.py}{UCI Sonar, Mines vs.\ Rocks: 208 sonar returns, 60 frequency-band features}
+{Binary classification (metal cylinder or rock)}{RBF kernel: CV accuracy 85.0\%, test accuracy 95.1\%,
+AUC 0.969. Linear kernel: test accuracy 75.6\%}
+
+\section{Dataset}
+The \textbf{Sonar} dataset (Gorman and Sejnowski, 1988; UCI) contains 208 sonar signals bounced off either
+a metal cylinder (111, ``mines'') or a roughly cylindrical rock (97), from many angles. Each signal is
+described by 60 numbers between 0 and 1, the energy in 60 frequency bands. With only 208 examples for 60
+features, and classes that overlap a lot, it is a classic hard benchmark and a good place to see whether
+a non-linear kernel helps. I standardised the features and used a stratified 80/20 split (167 training,
+41 test signals), with mines as the positive class.
+
+\section{Code and experiments}
+\begin{itemize}
+\item \code{kernel\_matrix} computes the linear or RBF kernel between two sets of points.
+\item \code{SVM.fit} is the SMO solver described above. It keeps a vector \code{u} with
+      $\sum_s\alpha_sy_sK_{st}$ for every training point, so each step costs only $O(n)$. Multipliers that
+      come within $10^{-10}$ of 0 or $C$ are snapped to the bound; without this, tiny round-off values
+      could make the solver pick the same pair forever.
+\item \code{decision\_function}, \code{predict} and \code{kkt\_violation} (a final check that the
+      solution really is optimal) complete the class.
+\end{itemize}
+\noindent Experiments: (1)~5-fold CV for the linear kernel over $C\in\{0.001,\dots,10\}$ and for the RBF
+kernel over $C\in\{0.1,1,10,100\}$ and $\gamma\in\{0.001,\dots,0.1\}$; (2)~the best linear and best RBF
+models on the test set.
+
+\section{Results}
+
+For the linear kernel the best CV accuracy was 77.1\% at $C=0.01$. The RBF kernel does much better,
+with 85.0\% at $C=100$, $\gamma=0.01$. The heat map also shows the two ways an RBF SVM can fail. With
+$C=0.1$ the penalty is so weak that the model predicts the majority class for every signal (53.3\%).
+With $\gamma=0.1$ each training point only influences its immediate neighbourhood, so the model
+memorises and generalises poorly (76.0\%).
+
+\begin{table}[H]
+\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{Test-set results (41 signals: 22 mines, 19 rocks).}
+\label{tab:svm-test}
+\begin{tabular}{@{}l S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] r r@{}}
+\toprule
+\textbf{Model} & {\textbf{Acc.}} & {\textbf{Prec.}} & {\textbf{Recall}} & {\textbf{F1}} & {\textbf{Spec.}} & {\textbf{AUC}} & \textbf{\#SV} & \textbf{SMO steps}\\
+\midrule
+Linear, $C=0.01$                 & 0.7561 & 0.8000 & 0.7273 & 0.7619 & 0.7895 & 0.8636 & 116 & 117\\
+RBF, $C=100$, $\gamma=0.01$      & \bfseries 0.9512 & \bfseries 0.9167 & \bfseries 1.0000 & \bfseries 0.9565 & \bfseries 0.8947 & \bfseries 0.9689 & 101 & 433\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The RBF SVM found all 22 mines in the test set and mislabelled two of the 19 rocks. The test accuracy
+(95.1\%) is clearly higher than its CV accuracy (85.0\%). With 41 test signals each one is worth 2.4
+points, and this particular split seems to have been on the easy side, so I would quote the CV figure of
+about 85\% as the realistic expectation. The gap between the kernels is real, though: both the CV and
+the test results show the RBF kernel 8 to 20 points ahead of the linear one.
+
+\paragraph{Checking the solver.} After training, the largest violation of the KKT conditions was
+0.0005, below the tolerance of 0.001, so SMO really did reach the optimum of the dual. For the linear
+SVM I also recovered $\vect w=\sum_i\alpha_iy_i\vect x_i$: $\|\vect w\|=0.599$, a margin width of
+$2/\|\vect w\|=3.34$ standardised units. The RBF SVM uses 101 of its 167 training points as support
+vectors, all strictly between 0 and $C$, so every training point is classified correctly and sits on or
+outside the margin.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\linewidth]{\figpath{10\_SVM}{cv_heatmap.pdf}}\hfill
+\includegraphics[width=0.48\linewidth]{\figpath{10\_SVM}{roc_and_confusion.pdf}}
+\caption{SVM hyperparameter heatmap, ROC curves and test confusion matrix.}
+\end{figure}
+
+\section{Source code}
+\lstinputlisting[caption={\texttt{10\_SVM/svm.py}}]{10_SVM/svm.py}
+\clearpage

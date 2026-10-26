@@ -1,0 +1,86 @@
+% =====================================================================
+\chapter{k-Nearest Neighbours}
+% =====================================================================
+
+\labinfo{01\_KNN}{knn.py}{UCI Wine: 178 wines, 13 chemical measurements, 3 cultivars}
+{Multi-class classification}{Test accuracy 92.5\%, macro F1 0.924 (k = 17, Manhattan distance)}
+
+\section{Dataset}
+The \textbf{Wine} dataset (UCI) contains the results of a chemical analysis of 178 wines grown in the
+same region of Italy but from three different cultivars. Each wine is described by 13 continuous
+measurements: alcohol, malic acid, ash, alcalinity of ash, magnesium, total phenols, flavanoids,
+non-flavanoid phenols, proanthocyanins, colour intensity, hue, OD280/OD315 of diluted wines and
+proline. The classes are a little unbalanced: 59, 71 and 48 wines.
+
+The features live on very different scales (magnesium is around 70--162, proline 278--1680, while hue
+and non-flavanoid phenols are below 2), which makes this dataset a good test of why k-NN needs scaling.
+I split it with a stratified 70/30 split into 125 training and 53 test wines.
+
+\section{Code and experiments}
+The script \code{knn.py} is organised as follows.
+\begin{itemize}
+  \item \code{stratified\_split} and \code{stratified\_folds} split indices while keeping the class mix.
+  \item \code{Standardizer} learns the mean and standard deviation on the training rows and applies them
+        to any other rows.
+  \item \code{pairwise\_distance} computes all query-to-training distances at once. For Euclidean distance
+        it uses the identity $\|\vect a-\vect b\|^2=\|\vect a\|^2+\|\vect b\|^2-2\,\vect a^\top\vect b$, which turns the
+        whole job into one matrix product.
+  \item \code{KNNClassifier} has the usual \code{fit}/\code{predict} pair. \code{fit} only stores the data.
+        \code{predict} sorts each row of the distance matrix, takes the first $k$ indices and runs the
+        vote, with the nearest-neighbour tie-break described above.
+  \item \code{confusion\_matrix} and \code{scores\_from\_confusion} compute accuracy and per-class
+        precision, recall and F1.
+\end{itemize}
+
+\noindent The experiment has four parts:
+(1)~5-fold cross-validation on the training set for $k=1,\dots,25$ with three settings: Euclidean with
+scaling, Manhattan with scaling, and Euclidean without scaling;
+(2)~the best $(k,\text{metric})$ pair is trained on the full training set and scored once on the test
+set;
+(3)~the same model is tried without scaling and with distance-weighted votes;
+(4)~to see what the decision boundary looks like, I project the data onto its first two principal
+components and colour the plane by the k-NN prediction.
+
+\section{Results}
+
+The cross-validation curves say the most important thing straight away: \textbf{scaling is not optional}.
+Without it the CV accuracy stays between 71\% and 77\% whatever $k$ is; with it, accuracy jumps to
+about 95--99\%. With scaled features both distances work well; Manhattan is slightly more stable for
+small $k$. The best CV score was 99.2\% for Manhattan distance with $k=17$, so that is the final model.
+
+\begin{table}[H]
+\centering\small
+\caption{Test-set results of the final model (Manhattan distance, $k=17$, 53 test wines).}
+\label{tab:knn-test}
+\begin{tabular}{@{}l S[table-format=1.3] S[table-format=1.3] S[table-format=1.3] S[table-format=2.0]@{}}
+\toprule
+\textbf{Class} & {\textbf{Precision}} & {\textbf{Recall}} & {\textbf{F1}} & {\textbf{Support}}\\
+\midrule
+Cultivar 1 & 0.947 & 1.000 & 0.973 & 18 \\
+Cultivar 2 & 1.000 & 0.810 & 0.895 & 21 \\
+Cultivar 3 & 0.824 & 1.000 & 0.903 & 14 \\
+\midrule
+Macro average & 0.924 & 0.937 & 0.924 & 53 \\
+\midrule
+\multicolumn{5}{@{}l}{Accuracy: \textbf{0.925} (49 of 53 correct)}\\
+\multicolumn{5}{@{}l}{Same $k$ without scaling: 0.679 \quad Distance-weighted voting: 0.925}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The test accuracy (92.5\%) is lower than the CV estimate (99.2\%). With only 53 test wines, every single
+mistake costs almost 2 percentage points, so 4 mistakes instead of 0 or 1 is enough to explain the gap;
+it is a reminder that small test sets give noisy numbers. Distance weighting did not change any
+prediction here. Dropping the scaling, on the other hand, cost 25 percentage points on the test set as
+well.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\linewidth]{\figpath{01\_KNN}{cv_accuracy_vs_k.pdf}}\hfill
+\includegraphics[width=0.48\linewidth]{\figpath{01\_KNN}{confusion_matrix.pdf}}
+\caption{k-NN cross-validation curve and test confusion matrix.}
+\end{figure}
+
+\section{Source code}
+\lstinputlisting[caption={\texttt{01\_KNN/knn.py}}]{01_KNN/knn.py}
+\clearpage

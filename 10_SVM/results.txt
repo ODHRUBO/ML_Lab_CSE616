@@ -1,0 +1,20 @@
+Sonar data: 208 returns, 60 features, mines = 111, rocks = 97
+Train/test split: 167 / 41
+
+Linear kernel, 5-fold CV accuracy: C=0.001: 0.6287, C=0.01: 0.7706, C=0.1: 0.7471, C=1: 0.6942, C=10: 0.7124
+
+RBF kernel, 5-fold CV accuracy (rows C, columns gamma):
+   C\gamma   0.001   0.005    0.01    0.02    0.05     0.1
+   0.1      0.5330  0.5330  0.5330  0.5330  0.5330  0.5330
+   1        0.7170  0.7892  0.7945  0.8368  0.8017  0.7600
+   10       0.7648  0.8377  0.8440  0.8495  0.8138  0.7600
+   100      0.7658  0.8019  0.8498  0.8495  0.8138  0.7600
+Best linear: C=0.01 (CV 0.7706);  best RBF: C=100, gamma=0.01 (CV 0.8498)
+
+Model                     Acc   Prec    Rec     F1   Spec    AUC   #SV  iters     KKT
+Linear (C=0.01)        0.7561 0.8000 0.7273 0.7619 0.7895 0.8636   116    117  0.0004
+RBF (C=100, g=0.01)    0.9512 0.9167 1.0000 0.9565 0.8947 0.9689   101    433  0.0005
+
+Linear SVM: ||w|| = 0.599, margin width 2/||w|| = 3.340
+RBF SVM: 101 support vectors out of 167 training points (0 at the bound a = C)
+RBF confusion matrix [[TN FP] [FN TP]] (positive = mine) = [[17, 2], [0, 22]]

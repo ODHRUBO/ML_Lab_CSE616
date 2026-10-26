@@ -1,0 +1,84 @@
+% =====================================================================
+\chapter{Support Vector Regression}
+% =====================================================================
+
+\labinfo{11\_SVR}{svr.py}{UCI Auto MPG: 392 cars (1970--1982), 8 inputs}{Regression (fuel economy in
+miles per gallon)}{RBF SVR: test RMSE 2.67 mpg, $R^2=0.887$ (least squares: RMSE 3.77, $R^2=0.776$)}
+
+\section{Dataset}
+The \textbf{Auto MPG} dataset (UCI) describes 398 car models from 1970 to 1982. The target is fuel
+economy in miles per gallon (9 to 47, mean 23.4). The inputs are the number of cylinders, engine
+displacement, horsepower, weight, acceleration, model year and origin (USA, Europe or Japan). Six cars
+have no horsepower value, so I dropped them, leaving 392. Origin was turned into two dummy columns
+(Europe, Japan) and the car name was not used. I used a random 80/20 split (314 training, 78 test cars)
+and standardised the inputs.
+
+\section{Code and experiments}
+\begin{itemize}
+\item \code{kernel\_matrix} gives the linear or RBF kernel.
+\item \code{SVR.fit} keeps a sign vector \code{z} ($+1$ for $\alpha_i$, $-1$ for $\alpha_i^*$), a vector
+      \code{pt} that says which data point each multiplier belongs to, and the running sum
+      $u_k=\sum_i(\alpha_i-\alpha_i^*)K_{ik}$. Each SMO step picks the pair, computes the step \code{t},
+      clips it and updates \code{u} in $O(n)$.
+\item \code{predict} uses only the support vectors.
+\item \code{cv\_rmse} runs 5-fold CV, standardising inside each fold.
+\end{itemize}
+\noindent Experiments: (1)~a grid of 48 settings, $C\in\{1,10,100,1000\}$, $\gamma\in\{0.02,0.05,0.1,0.3\}$,
+$\varepsilon\in\{0.5,1,2\}$, compared by 5-fold CV RMSE; (2)~the best RBF SVR against a linear SVR and
+ordinary least squares on the test set; (3)~the effect of $\varepsilon$ with $C$ and $\gamma$ fixed;
+(4)~a one-input SVR (mpg against horsepower) to show the tube on real data.
+
+\section{Results}
+
+The best five-fold CV result was $C=100$, $\gamma=0.1$, $\varepsilon=0.5$ (CV RMSE 2.53 mpg). The next
+few settings were within 0.04 mpg of it, so the choice is not delicate.
+
+\begin{table}[H]
+\centering\small
+\caption{Test-set comparison (78 cars). ``In tube'' is the share of test cars predicted within $\pm\varepsilon$.}
+\label{tab:svr-test}
+\begin{tabular}{@{}l S[table-format=1.3] S[table-format=1.3] S[table-format=1.4] r r@{}}
+\toprule
+\textbf{Model} & {\textbf{MAE}} & {\textbf{RMSE}} & {\textbf{$R^2$}} & \textbf{\#SV} & \textbf{In tube}\\
+\midrule
+Linear regression (least squares)          & 2.749 & 3.765 & 0.7759 & -- & --\\
+Linear SVR ($C=10$, $\varepsilon=1$)       & 2.798 & 4.029 & 0.7434 & 221 & 24.4\%\\
+RBF SVR ($C=100$, $\gamma=0.1$, $\varepsilon=0.5$) & \bfseries 1.936 & \bfseries 2.672 & \bfseries 0.8871 & 241 & 29.5\%\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The RBF SVR cuts the test RMSE by 29\% compared with least squares (3.77 to 2.67 mpg) and raises $R^2$
+from 0.78 to 0.89. Fuel economy depends on weight and horsepower in a curved way (it falls quickly at
+first and then levels off), which a straight line cannot capture. The linear SVR is not better than least
+squares; it is still a straight line, just fitted with a different loss. So the improvement comes from
+the kernel, not from the loss function.
+
+\begin{table}[H]
+\centering\small
+\caption{Effect of the tube width $\varepsilon$ ($C=100$, $\gamma=0.1$).}
+\label{tab:svr-eps}
+\begin{tabular}{@{}l c c c c c c c c@{}}
+\toprule
+$\varepsilon$ (mpg) & 0.1 & 0.25 & 0.5 & 1 & 2 & 3 & 4 & 6\\
+\midrule
+Support vectors (of 314) & 300 & 276 & 241 & 193 & 111 & 67 & 44 & 24\\
+Test RMSE (mpg) & 2.681 & 2.657 & 2.672 & 2.673 & 2.820 & 3.038 & 3.283 & 3.809\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The $\varepsilon$ study shows the sparsity of SVR clearly. With $\varepsilon=1$~mpg the model uses 193
+support vectors and is as accurate as with $\varepsilon=0.1$ (300 support vectors). With
+$\varepsilon=4$~mpg only 44 cars define the whole function, at the cost of about 0.6 mpg of extra RMSE.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\linewidth]{\figpath{11\_SVR}{epsilon_tube_1d.pdf}}\hfill
+\includegraphics[width=0.48\linewidth]{\figpath{11\_SVR}{pred_vs_actual.pdf}}
+\caption{The SVR epsilon tube and predicted-versus-actual test values.}
+\end{figure}
+
+\section{Source code}
+\lstinputlisting[caption={\texttt{11\_SVR/svr.py}}]{11_SVR/svr.py}
+\clearpage

@@ -1,0 +1,18 @@
+Iris: 98 train / 22 validation / 30 test flowers, 4 inputs, 3 classes
+
+Hidden-layer size study (100 epochs, lr = 0.5, batch 32):
+      4 hidden units -> train acc 0.9592, validation acc 0.9545, parameters 310
+      8 hidden units -> train acc 0.9592, validation acc 0.8636, parameters 610
+     16 hidden units -> train acc 0.9592, validation acc 0.8182, parameters 1210
+     32 hidden units -> train acc 0.8878, validation acc 0.7273, parameters 2410
+     64 hidden units -> train acc 0.8061, validation acc 0.5909, parameters 4810
+    128 hidden units -> train acc 0.6837, validation acc 0.5909, parameters 9610
+Chosen hidden size: 4
+
+Test-set results
+  Accuracy        : 0.9667  (1 mistakes out of 30)
+  Macro precision : 0.9722
+  Macro recall    : 0.9630
+  Macro F1        : 0.9659
+  Per-class F1     : 0:1.000  1:0.941  2:0.957
+  Most common confusions: 1 read as 2 (1x), 2 read as 2 (0x), 2 read as 1 (0x), 2 read as 0 (0x)

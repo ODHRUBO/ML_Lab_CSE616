@@ -1,0 +1,88 @@
+% =====================================================================
+\chapter[Radial Basis Function Neural Network]{Radial Basis Function\\Neural Network}
+% =====================================================================
+
+\labinfo{09\_RBF\_Network}{rbf\_network.py}{UCI Seeds: 210 wheat kernels, 7 geometric measurements,
+3 varieties}{3-class classification}{Test accuracy 96.8\%, macro F1 0.968 (8 Gaussian hidden units)}
+
+\section{Dataset}
+The \textbf{Seeds} dataset (UCI) contains 210 wheat kernels, 70 from each of three varieties: Kama,
+Rosa and Canadian. A soft X-ray image of each kernel was used to measure seven geometric properties:
+area, perimeter, compactness ($4\pi\cdot\text{area}/\text{perimeter}^2$), kernel length, kernel width,
+asymmetry coefficient and length of the kernel groove. All seven are continuous. I standardised them and
+used a stratified 70/30 split (147 training and 63 test kernels).
+
+\section{Code and experiments}
+\begin{itemize}
+\item \code{kmeans} is a plain implementation with 10 random restarts.
+\item \code{RBFNetwork.fit} runs k-means (or, with \code{centre\_method="random"}, simply picks
+      random training points), applies the width rule, builds the hidden-activation matrix with
+      \code{\_hidden} and solves the least-squares problem for the output weights. A tiny ridge term
+      ($10^{-8}$) keeps the solve stable when two hidden units are almost identical.
+\item \code{predict} takes the arg-max of the outputs.
+\end{itemize}
+\noindent Experiments: (1)~a grid over the number of centres $K\in\{2,3,5,8,10,15,20,30,40\}$ and the
+width scale $\in\{0.5,1,2,4\}$ with 5-fold CV; (2)~the best network on the test set; (3)~the same
+network with random centres instead of k-means; (4)~a picture of a 2-D version of the network.
+
+\section{Results}
+
+\begin{table}[H]
+\centering\small
+\caption{5-fold cross-validation accuracy for different numbers of centres and widths.}
+\label{tab:rbf-grid}
+\begin{tabular}{@{}l c c c c c c c c c@{}}
+\toprule
+$K$ & 2 & 3 & 5 & 8 & 10 & 15 & 20 & 30 & 40\\
+\midrule
+width ×0.5 & 0.599 & 0.891 & 0.884 & 0.893 & 0.892 & 0.878 & 0.870 & 0.870 & 0.831\\
+width ×1   & 0.769 & 0.925 & 0.925 & 0.905 & 0.905 & 0.905 & 0.891 & 0.899 & 0.904\\
+width ×2   & 0.816 & 0.926 & 0.926 & 0.933 & 0.925 & 0.926 & 0.932 & 0.925 & 0.919\\
+width ×4   & 0.831 & 0.926 & 0.919 & \textbf{0.953} & \textbf{0.953} & 0.919 & 0.945 & 0.952 & 0.939\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two centres are clearly not enough for three classes. From three centres on, accuracy is above 89\% for
+every width. Narrow Gaussians (×0.5) are consistently worst: each unit only ``sees'' a small region and
+the network starts to memorise individual kernels. The widest setting worked best, which tells us that
+the three varieties are separated by smooth, gently curved boundaries. The best result was $K=8$ with
+width scale 4 ($\sigma=6.72$ in standardised units), with a CV accuracy of 95.3\%.
+
+\begin{table}[H]
+\centering\small
+\caption{Test-set results of the final network ($K=8$, $\sigma=6.72$, 63 kernels).}
+\label{tab:rbf-test}
+\begin{tabular}{@{}l S[table-format=1.3] S[table-format=1.3] S[table-format=1.3] S[table-format=2.0]@{}}
+\toprule
+\textbf{Variety} & {\textbf{Precision}} & {\textbf{Recall}} & {\textbf{F1}} & {\textbf{Support}}\\
+\midrule
+Kama     & 0.952 & 0.952 & 0.952 & 21\\
+Rosa     & 1.000 & 1.000 & 1.000 & 21\\
+Canadian & 0.952 & 0.952 & 0.952 & 21\\
+\midrule
+Macro average & 0.968 & 0.968 & 0.968 & 63\\
+\midrule
+\multicolumn{5}{@{}l}{Accuracy: \textbf{0.968} (61 of 63)}\\
+\multicolumn{5}{@{}l}{Random centres: 0.968 (width ×4), 0.873 (width ×1, where k-means gives 0.905)}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The network classified 61 of the 63 test kernels correctly. Kama sits between the other two varieties
+in size, so its border with Canadian is where the mistakes happen. With these wide Gaussians, the
+exact positions of the centres hardly mattered: random centres gave the same test accuracy as k-means
+(96.8\%). With the plain width rule (scale ×1) the centres mattered more: k-means reached 90.5\% and
+random centres only 87.3\%, because narrow bumps placed in the wrong spots leave parts of the input
+space uncovered.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\linewidth]{\figpath{09\_RBF\_Network}{cv_vs_centres.pdf}}\hfill
+\includegraphics[width=0.48\linewidth]{\figpath{09\_RBF\_Network}{rbf_2d_regions.pdf}}
+\caption{RBF centre/width selection and the two-dimensional decision regions.}
+\end{figure}
+
+\section{Source code}
+\lstinputlisting[caption={\texttt{09\_RBF\_Network/rbf\_network.py}}]{09_RBF_Network/rbf_network.py}
+\clearpage
